@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rails New Command Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .font-monospace-code {
+            font-family: 'Fira Code', 'Cascadia Code', 'Courier New', Courier, monospace;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <div class="container py-5" style="max-width: 1000px;">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="bg-danger text-white p-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h1 class="h4 mb-0 d-flex align-items-center">
+                        <i class="bi bi-gem me-2"></i>Rails New Generator
+                    </h1>
+                    <p class="mb-0 small opacity-75">Rails 8.1.1 対応コマンド作成ツール</p>
+                </div>
+                <span class="badge bg-white text-danger px-3 py-2">Stable</span>
+            </div>
+            <div class="p-4 bg-white border-bottom sticky-top shadow-sm" style="z-index: 1020;">
+                <div
+                    class="bg-dark rounded-3 p-3 d-flex align-items-center justify-content-between border-start border-danger border-5 shadow">
+                    <div class="text-success font-monospace-code fs-5" id="command-output">
+                        <span class="text-info opacity-50">$</span> rails new my_app
+                    </div>
+                    <button class="btn btn-outline-light btn-sm ms-3 border-0" onclick="copyCommand()"
+                        title="クリップボードにコピー">
+                        <i class="bi bi-copy fs-5"></i>
+                    </button>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label for="app_path" class="form-label fw-bold small text-secondary">APP PATH / NAME</label>
+                        <input type="text" id="app_path" class="form-control" placeholder="my_app"
+                            oninput="updateCommand()">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small text-secondary">API ONLY</label>
+                        <div class="form-check form-switch pt-1">
+                            <input class="form-check-input skip-checkbox shadow-none" type="checkbox" id="opt_api"
+                                value="--api" onchange="updateCommand()">
+                            <label class="form-check-label small" for="opt_api">--api</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small text-secondary">MINIMAL</label>
+                        <div class="form-check form-switch pt-1">
+                            <input class="form-check-input skip-checkbox shadow-none" type="checkbox" id="opt_minimal"
+                                value="--minimal" onchange="updateCommand()">
+                            <label class="form-check-label small" for="opt_minimal">--minimal</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold mb-3 d-flex align-items-center text-primary">
+                                <i class="bi bi-database me-2"></i>Database
+                            </h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input active-toggle shadow-none" type="checkbox" id="enable_db"
+                                    data-target="val_db">
+                                <label class="form-check-label small cursor-pointer" for="enable_db">データベースを指定</label>
+                            </div>
+                            <select id="val_db" class="form-select form-select-sm" disabled onchange="updateCommand()">
+                                <option value="sqlite3">sqlite3 (Default)</option>
+                                <option value="postgresql">postgresql</option>
+                                <option value="mysql">mysql</option>
+                                <option value="mariadb-mysql">mariadb-mysql</option>
+                                <option value="trilogy">trilogy</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold mb-3 d-flex align-items-center text-success">
+                                <i class="bi bi-code-slash me-2"></i>JavaScript
+                            </h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input active-toggle shadow-none" type="checkbox" id="enable_js"
+                                    data-target="val_js">
+                                <label class="form-check-label small cursor-pointer" for="enable_js">JSアプローチを指定</label>
+                            </div>
+                            <select id="val_js" class="form-select form-select-sm" disabled onchange="updateCommand()">
+                                <option value="importmap">importmap (Default)</option>
+                                <option value="bun">bun</option>
+                                <option value="esbuild">esbuild</option>
+                                <option value="webpack">webpack</option>
+                                <option value="rollup">rollup</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold mb-3 d-flex align-items-center text-info">
+                                <i class="bi bi-palette me-2"></i>CSS
+                            </h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input active-toggle shadow-none" type="checkbox"
+                                    id="enable_css" data-target="val_css">
+                                <label class="form-check-label small cursor-pointer"
+                                    for="enable_css">CSSプロセッサを指定</label>
+                            </div>
+                            <select id="val_css" class="form-select form-select-sm" disabled onchange="updateCommand()">
+                                <option value="tailwind">tailwind</option>
+                                <option value="bootstrap">bootstrap</option>
+                                <option value="bulma">bulma</option>
+                                <option value="sass">sass</option>
+                                <option value="postcss">postcss</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <h6 class="fw-bold text-secondary mb-3 d-flex align-items-center">
+                    <i class="bi bi-scissors me-2"></i>SKIP OPTIONS
+                </h6>
+                <div class="table-responsive border rounded-3">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 80px;">Skip</th>
+                                <th style="width: 240px;">Option</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-git" id="skip_git" onchange="updateCommand()">
+                                </td>
+                                <td><label for="skip_git"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-git</label>
+                                </td>
+                                <td><label for="skip_git"
+                                        class="text-muted small cursor-pointer">Gitリポジトリの初期化と関連ファイルをスキップ (-G)</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-docker" id="skip_docker"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_docker"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-docker</label>
+                                </td>
+                                <td><label for="skip_docker"
+                                        class="text-muted small cursor-pointer">DockerfileやDocker関連ファイルの生成をスキップ</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-test" id="skip_test" onchange="updateCommand()">
+                                </td>
+                                <td><label for="skip_test"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-test</label>
+                                </td>
+                                <td><label for="skip_test"
+                                        class="text-muted small cursor-pointer">テスト用ファイル(Minitest)の生成をスキップ (-T)</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-system-test" id="skip_system_test"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_system_test"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-system-test</label>
+                                </td>
+                                <td><label for="skip_system_test"
+                                        class="text-muted small cursor-pointer">システムテスト関連の設定をスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-active-record" id="skip_ar"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_ar"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-active-record</label>
+                                </td>
+                                <td><label for="skip_ar" class="text-muted small cursor-pointer">Active Recordをスキップ
+                                        (DB非使用時など) (-O)</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-active-job" id="skip_aj"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_aj"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-active-job</label>
+                                </td>
+                                <td><label for="skip_aj" class="text-muted small cursor-pointer">Active Jobをスキップ</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-active-storage" id="skip_as"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_as"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-active-storage</label>
+                                </td>
+                                <td><label for="skip_as" class="text-muted small cursor-pointer">Active
+                                        Storageをスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-action-mailer" id="skip_mailer"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_mailer"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-action-mailer</label>
+                                </td>
+                                <td><label for="skip_mailer" class="text-muted small cursor-pointer">Action
+                                        Mailerファイルをスキップ (-M)</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-action-mailbox" id="skip_mailbox"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_mailbox"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-action-mailbox</label>
+                                </td>
+                                <td><label for="skip_mailbox" class="text-muted small cursor-pointer">Action
+                                        Mailboxをスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-action-text" id="skip_text_opt"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_text_opt"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-action-text</label>
+                                </td>
+                                <td><label for="skip_text_opt" class="text-muted small cursor-pointer">Action
+                                        Textをスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-action-cable" id="skip_cable"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_cable"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-action-cable</label>
+                                </td>
+                                <td><label for="skip_cable" class="text-muted small cursor-pointer">Action
+                                        Cableファイルをスキップ (-C)</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-asset-pipeline" id="skip_asset"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_asset"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-asset-pipeline</label>
+                                </td>
+                                <td><label for="skip_asset" class="text-muted small cursor-pointer">Asset Pipelineをスキップ
+                                        (-A)</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-javascript" id="skip_js_opt"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_js_opt"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-javascript</label>
+                                </td>
+                                <td><label for="skip_js_opt" class="text-muted small cursor-pointer">JavaScriptファイルをスキップ
+                                        (-J)</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-hotwire" id="skip_hotwire"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_hotwire"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-hotwire</label>
+                                </td>
+                                <td><label for="skip_hotwire"
+                                        class="text-muted small cursor-pointer">Hotwireのセットアップをスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-jbuilder" id="skip_jbuilder"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_jbuilder"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-jbuilder</label>
+                                </td>
+                                <td><label for="skip_jbuilder" class="text-muted small cursor-pointer">jbuilder
+                                        gemの使用をスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-bootsnap" id="skip_bootsnap"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_bootsnap"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-bootsnap</label>
+                                </td>
+                                <td><label for="skip_bootsnap" class="text-muted small cursor-pointer">bootsnap
+                                        gemの使用をスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-dev-gems" id="skip_dev"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_dev"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-dev-gems</label>
+                                </td>
+                                <td><label for="skip_dev"
+                                        class="text-muted small cursor-pointer">開発用Gem(web-console等)をスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-rubocop" id="skip_rubocop"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_rubocop"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-rubocop</label>
+                                </td>
+                                <td><label for="skip_rubocop"
+                                        class="text-muted small cursor-pointer">RuboCopのセットアップをスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-brakeman" id="skip_brakeman"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_brakeman"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-brakeman</label>
+                                </td>
+                                <td><label for="skip_brakeman"
+                                        class="text-muted small cursor-pointer">Brakemanのセットアップをスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-kamal" id="skip_kamal" onchange="updateCommand()">
+                                </td>
+                                <td><label for="skip_kamal"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-kamal</label>
+                                </td>
+                                <td><label for="skip_kamal"
+                                        class="text-muted small cursor-pointer">Kamalのセットアップをスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-thruster" id="skip_thruster"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_thruster"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-thruster</label>
+                                </td>
+                                <td><label for="skip_thruster"
+                                        class="text-muted small cursor-pointer">Thrusterのセットアップをスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-solid" id="skip_solid" onchange="updateCommand()">
+                                </td>
+                                <td><label for="skip_solid"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-solid</label>
+                                </td>
+                                <td><label for="skip_solid" class="text-muted small cursor-pointer">Solid Cache, Queue,
+                                        Cableをスキップ</label></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input class="form-check-input skip-checkbox shadow-none"
+                                        type="checkbox" value="--skip-bundle" id="skip_bundle"
+                                        onchange="updateCommand()"></td>
+                                <td><label for="skip_bundle"
+                                        class="font-monospace-code text-danger small fw-bold cursor-pointer">--skip-bundle</label>
+                                </td>
+                                <td><label for="skip_bundle" class="text-muted small cursor-pointer">bundle
+                                        installの自動実行をスキップ (-B)</label></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light p-4 text-center border-top">
+                <small class="text-muted">
+                    Official Doc: <a href="https://guides.rubyonrails.org/command_line.html#rails-new" target="_blank"
+                        class="link-danger text-decoration-none fw-bold">Rails Command Line</a>
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div id="copy-toast"
+        class="position-fixed bottom-0 start-50 translate-middle-x mb-4 bg-dark text-white py-2 px-4 rounded-pill shadow-lg d-none"
+        style="z-index: 2000;">
+        <small><i class="bi bi-check-circle-fill me-2 text-success"></i>コマンドをコピーしました</small>
+    </div>
+
+    <script>
+        const outputElement = document.getElementById('command-output');
+        const appPathInput = document.getElementById('app_path');
+        const toast = document.getElementById('copy-toast');
+
+        function updateCommand() {
+            const path = appPathInput.value.trim() || 'my_app';
+            let parts = ['rails new', path];
+
+            document.querySelectorAll('.active-toggle').forEach(toggle => {
+                const targetId = toggle.getAttribute('data-target');
+                const selectElement = document.getElementById(targetId);
+                if (toggle.checked) {
+                    selectElement.disabled = false;
+                    parts.push(`--${targetId.split('_')[1]}=${selectElement.value}`);
+                } else {
+                    selectElement.disabled = true;
+                }
+            });
+
+            document.querySelectorAll('.skip-checkbox:checked').forEach(cb => {
+                parts.push(cb.value);
+            });
+
+            outputElement.innerHTML = `<span class="text-info opacity-50">$</span> ${parts.join(' ')}`;
+        }
+
+        function copyCommand() {
+            const text = outputElement.innerText.replace('$ ', '');
+            navigator.clipboard.writeText(text).then(() => {
+                toast.classList.remove('d-none');
+                setTimeout(() => toast.classList.add('d-none'), 2000);
+            });
+        }
+
+        document.querySelectorAll('.active-toggle').forEach(el => el.addEventListener('change', updateCommand));
+        appPathInput.addEventListener('input', updateCommand);
+        updateCommand();
+    </script>
+
+</body>
+
+</html>
